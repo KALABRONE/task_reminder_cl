@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F0E17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="TaskFlow Pro - Модерна апликација за задачи и потсетници">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>TaskFlow Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root {
+  --primary:#6C63FF;--primary-light:#8B83FF;--secondary:#FF6584;
+  --accent1:#00D2FF;--accent2:#FFD93D;--accent3:#6BCB77;
+  --accent4:#FF6B6B;--accent5:#4D96FF;--bg-dark:#0F0E17;
+  --bg-card-dark:#1A1932;--text-dark:#FFFFFE;
+  --glass:rgba(255,255,255,0.08);--glass-border:rgba(255,255,255,0.12);
+  --shadow:0 8px 32px rgba(0,0,0,0.3);--radius:16px;--radius-sm:10px;
+  --transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Poppins',sans-serif;background:var(--bg-dark);
+  color:var(--text-dark);min-height:100vh;overflow-x:hidden;
+  transition:var(--transition);-webkit-tap-highlight-color:transparent;
+}
+body.light-mode{
+  --bg-dark:#F0F2FF;--bg-card-dark:#FFFFFF;--text-dark:#2B2C34;
+  --glass:rgba(108,99,255,0.06);--glass-border:rgba(108,99,255,0.12);
+  --shadow:0 8px 32px rgba(108,99,255,0.15);
+}
+
+.bg-animation{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;overflow:hidden;pointer-events:none;}
+.bg-animation .circle{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.12;animation:float 20s infinite ease-in-out;}
+.bg-animation .circle:nth-child(1){width:400px;height:400px;background:var(--primary);top:-100px;left:-100px;}
+.bg-animation .circle:nth-child(2){width:300px;height:300px;background:var(--secondary);top:50%;right:-50px;animation-delay:-5s;}
+.bg-animation .circle:nth-child(3){width:350px;height:350px;background:var(--accent1);bottom:-100px;left:40%;animation-delay:-10s;}
+.bg-animation .circle:nth-child(4){width:250px;height:250px;background:var(--accent2);top:30%;left:60%;animation-delay:-15s;}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1);}25%{transform:translate(50px,-50px) scale(1.1);}50%{transform:translate(-30px,60px) scale(0.9);}75%{transform:translate(40px,30px) scale(1.05);}}
+
+.app-container{display:flex;min-height:100vh;position:relative;z-index:1;}
+
+/* Sidebar */
+.sidebar{width:280px;background:var(--bg-card-dark);border-right:1px solid var(--glass-border);padding:24px 16px;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;transition:var(--transition);backdrop-filter:blur(20px);overflow-y:auto;}
+.sidebar.collapsed{width:72px;}
+.sidebar.collapsed .sidebar-text,.sidebar.collapsed .logo-text,.sidebar.collapsed .progress-section,.sidebar.collapsed .categories-list{display:none;}
+.sidebar.collapsed .nav-item{justify-content:center;padding:12px;}
+.sidebar.collapsed .logo{justify-content:center;}
+
+.logo{display:flex;align-items:center;gap:12px;padding:8px 12px;margin-bottom:32px;cursor:pointer;position:relative;}
+.logo-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:20px;color:white;font-weight:700;box-shadow:0 4px 15px rgba(108,99,255,0.4);overflow:hidden;flex-shrink:0;position:relative;}
+.logo-icon img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
+.logo-icon .logo-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:var(--transition);font-size:12px;}
+.logo:hover .logo-overlay{opacity:1;}
+.logo-text{font-size:20px;font-weight:700;}
+.logo-text span{color:var(--primary);}
+
+#logoUpload{display:none;}
+
+.nav-section{margin-bottom:24px;}
+.nav-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.4);padding:0 12px;margin-bottom:8px;font-weight:600;}
+body.light-mode .nav-label{color:rgba(0,0,0,0.4);}
+
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);font-size:14px;font-weight:500;position:relative;}
+.nav-item:hover{background:var(--glass);}
+.nav-item.active{background:linear-gradient(135deg,rgba(108,99,255,0.2),rgba(255,101,132,0.1));color:var(--primary-light);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--primary);border-radius:0 4px 4px 0;}
+.nav-item i{width:20px;text-align:center;font-size:16px;}
+.nav-item .badge{margin-left:auto;background:var(--secondary);color:white;font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600;min-width:24px;text-align:center;}
+
+.categories-list{margin-top:8px;}
+.cat-item{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;transition:var(--transition);}
+.cat-item:hover{background:var(--glass);}
+.cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+.progress-section{margin-top:auto;padding:16px;background:var(--glass);border-radius:var(--radius);border:1px solid var(--glass-border);}
+.progress-title{font-size:13px;font-weight:600;margin-bottom:8px;}
+.progress-bar{height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;margin-bottom:6px;}
+body.light-mode .progress-bar{background:rgba(0,0,0,0.08);}
+.progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--primary),var(--accent1));transition:width 0.5s ease;}
+.progress-text{font-size:11px;opacity:0.6;}
+
+/* Main */
+.main-content{flex:1;margin-left:280px;padding:24px 32px;transition:var(--transition);min-height:100vh;}
+.sidebar.collapsed~.main-content{margin-left:72px;}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px;}
+.top-left{display:flex;align-items:center;gap:16px;}
+.menu-toggle{width:40px;height:40px;border-radius:10px;background:var(--glass);border:1px solid var(--glass-border);color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:var(--transition);}
+.menu-toggle:hover{background:var(--primary);color:white;}
+.page-title h1{font-size:26px;font-weight:700;}
+.page-title p{font-size:13px;opacity:0.6;margin-top:2px;}
+.top-right{display:flex;align-items:center;gap:12px;}
+
+.search-box{display:flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:10px 16px;min-width:220px;transition:var(--transition);}
+.search-box:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,0.2);}
+.search-box input{background:none;border:none;outline:none;color:inherit;font-family:inherit;font-size:13px;width:100%;}
+.search-box input::placeholder{opacity:0.4;}
+.search-box i{opacity:0.4;font-size:14px;}
+
+.icon-btn{width:40px;height:40px;border-radius:10px;background:var(--glass);border:1px solid var(--glass-border);color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:var(--transition);position:relative;}
+.icon-btn:hover{background:var(--primary);color:white;}
+.icon-btn .notif-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;background:var(--secondary);border-radius:50%;border:2px solid var(--bg-card-dark);}
+
+.action-buttons{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
+.btn{padding:12px 24px;border-radius:12px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:var(--transition);color:white;}
+.btn:hover{transform:translateY(-2px);}
+.btn:active{transform:translateY(0);}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));box-shadow:0 4px 20px rgba(108,99,255,0.4);}
+.btn-secondary{background:linear-gradient(135deg,var(--secondary),#FF8FA3);box-shadow:0 4px 20px rgba(255,101,132,0.4);}
+.btn-accent{background:linear-gradient(135deg,var(--accent1),#00B4D8);box-shadow:0 4px 20px rgba(0,210,255,0.4);}
+.btn-success{background:linear-gradient(135deg,var(--accent3),#4CAF50);box-shadow:0 4px 20px rgba(107,203,119,0.4);}
+.btn-outline{background:transparent;border:2px solid var(--glass-border);color:inherit;}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);}
+.btn-sm{padding:8px 16px;font-size:12px;border-radius:8px;}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--bg-card-dark);border:1px solid var(--glass-border);border-radius:var(--radius);padding:20px;transition:var(--transition);position:relative;overflow:hidden;}
+.stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);}
+.stat-card::after{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;filter:blur(40px);opacity:0.3;}
+.stat-card:nth-child(1)::after{background:var(--primary);}
+.stat-card:nth-child(2)::after{background:var(--accent2);}
+.stat-card:nth-child(3)::after{background:var(--accent3);}
+.stat-card:nth-child(4)::after{background:var(--secondary);}
+.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;}
+.stat-card:nth-child(1) .stat-icon{background:rgba(108,99,255,0.15);color:var(--primary);}
+.stat-card:nth-child(2) .stat-icon{background:rgba(255,217,61,0.15);color:var(--accent2);}
+.stat-card:nth-child(3) .stat-icon{background:rgba(107,203,119,0.15);color:var(--accent3);}
+.stat-card:nth-child(4) .stat-icon{background:rgba(255,101,132,0.15);color:var(--secondary);}
+.stat-value{font-size:28px;font-weight:700;}
+.stat-label{font-size:13px;opacity:0.6;margin-top:2px;}
+
+/* Filters */
+.filter-bar{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px;flex-wrap:wrap;}
+.filter-chip{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);transition:var(--transition);white-space:nowrap;font-family:inherit;color:inherit;}
+.filter-chip:hover,.filter-chip.active{background:var(--primary);color:white;border-color:var(--primary);}
+
+/* Task Cards */
+.tasks-container{display:flex;flex-direction:column;gap:12px;}
+.task-card{background:var(--bg-card-dark);border:1px solid var(--glass-border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;transition:var(--transition);cursor:pointer;position:relative;overflow:hidden;}
+.task-card:hover{transform:translateX(4px);box-shadow:var(--shadow);border-color:var(--primary);}
+.task-card.completed{opacity:0.6;}
+.task-card.completed .task-title{text-decoration:line-through;}
+.task-card .priority-indicator{position:absolute;left:0;top:0;bottom:0;width:4px;}
+.priority-high .priority-indicator{background:var(--accent4);}
+.priority-medium .priority-indicator{background:var(--accent2);}
+.priority-low .priority-indicator{background:var(--accent3);}
+
+.task-checkbox{width:24px;height:24px;border-radius:50%;border:2px solid var(--glass-border);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);flex-shrink:0;margin-top:2px;}
+.task-checkbox:hover{border-color:var(--primary);}
+.task-checkbox.checked{background:linear-gradient(135deg,var(--accent3),#4CAF50);border-color:var(--accent3);}
+.task-checkbox.checked i{color:white;font-size:12px;}
+
+.task-info{flex:1;min-width:0;}
+.task-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.task-meta{display:flex;align-items:center;gap:12px;font-size:11px;opacity:0.6;flex-wrap:wrap;}
+.task-meta span{display:flex;align-items:center;gap:4px;}
+.task-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.task-tag{padding:3px 10px;border-radius:6px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.tag-work{background:rgba(108,99,255,0.15);color:var(--primary-light);}
+.tag-personal{background:rgba(255,101,132,0.15);color:var(--secondary);}
+.tag-health{background:rgba(107,203,119,0.15);color:var(--accent3);}
+.tag-shopping{background:rgba(255,217,61,0.15);color:var(--accent2);}
+.tag-study{background:rgba(0,210,255,0.15);color:var(--accent1);}
+
+.status-badge{padding:4px 12px;border-radius:8px;font-size:11px;font-weight:600;white-space:nowrap;}
+.status-todo{background:rgba(77,150,255,0.15);color:var(--accent5);}
+.status-progress{background:rgba(255,217,61,0.15);color:var(--accent2);}
+.status-done{background:rgba(107,203,119,0.15);color:var(--accent3);}
+
+.task-actions{display:flex;gap:6px;opacity:0;transition:var(--transition);flex-shrink:0;margin-top:2px;}
+.task-card:hover .task-actions{opacity:1;}
+.task-action-btn{width:32px;height:32px;border-radius:8px;background:var(--glass);border:none;color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:var(--transition);}
+.task-action-btn:hover{background:var(--primary);color:white;}
+.task-action-btn.delete:hover{background:var(--accent4);}
+
+.subtasks{margin-top:10px;padding-left:38px;}
+.subtask-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;}
+.subtask-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--glass-border);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);flex-shrink:0;}
+.subtask-check.checked{background:var(--accent3);border-color:var(--accent3);}
+
+/* Reminders */
+.reminder-card{background:var(--bg-card-dark);border:1px solid var(--glass-border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;transition:var(--transition);margin-bottom:12px;animation:slideIn 0.3s ease;}
+.reminder-card:hover{box-shadow:var(--shadow);}
+.reminder-card.active-reminder{border-color:var(--accent4);animation:pulse-border 2s infinite;}
+@keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,0.4);}50%{box-shadow:0 0 0 8px rgba(255,107,107,0);}}
+
+.reminder-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(255,101,132,0.15);color:var(--secondary);}
+.reminder-info{flex:1;}
+.reminder-title{font-size:14px;font-weight:600;}
+.reminder-time{font-size:12px;opacity:0.6;margin-top:2px;}
+
+.snooze-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.snooze-btn{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);color:inherit;transition:var(--transition);font-family:inherit;}
+.snooze-btn:hover{background:var(--accent2);color:#000;border-color:var(--accent2);}
+
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.2s ease;}
+.modal-overlay.show{display:flex;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes slideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.modal{background:var(--bg-card-dark);border:1px solid var(--glass-border);border-radius:20px;padding:28px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;animation:slideIn 0.3s ease;box-shadow:0 25px 60px rgba(0,0,0,0.5);}
+body.light-mode .modal{box-shadow:0 25px 60px rgba(0,0,0,0.15);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.modal-header h2{font-size:20px;font-weight:700;}
+.modal-close{width:36px;height:36px;border-radius:10px;background:var(--glass);border:none;color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:var(--transition);}
+.modal-close:hover{background:var(--accent4);color:white;}
+
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;opacity:0.8;}
+.form-input,.form-select,.form-textarea{width:100%;padding:12px 16px;border-radius:12px;border:1px solid var(--glass-border);background:var(--glass);color:inherit;font-family:inherit;font-size:14px;transition:var(--transition);outline:none;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,0.2);}
+.form-textarea{resize:vertical;min-height:70px;}
+.form-select{cursor:pointer;}
+.form-select option{background:var(--bg-card-dark);color:var(--text-dark);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.priority-selector{display:flex;gap:8px;}
+.priority-option{flex:1;padding:10px;border-radius:10px;text-align:center;cursor:pointer;border:2px solid var(--glass-border);font-size:12px;font-weight:600;transition:var(--transition);}
+.priority-option:hover{transform:translateY(-2px);}
+.priority-option.high.selected{border-color:var(--accent4);background:rgba(255,107,107,0.15);color:var(--accent4);}
+.priority-option.medium.selected{border-color:var(--accent2);background:rgba(255,217,61,0.15);color:var(--accent2);}
+.priority-option.low.selected{border-color:var(--accent3);background:rgba(107,203,119,0.15);color:var(--accent3);}
+
+.subtask-input-group{display:flex;gap:8px;margin-top:8px;}
+.subtask-input-group input{flex:1;}
+.subtask-list-form{margin-top:8px;}
+.subtask-form-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;}
+.subtask-form-item .remove-subtask{background:none;border:none;color:var(--accent4);cursor:pointer;font-size:14px;}
+
+/* Sound Selector */
+.sound-selector{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+.sound-option{padding:10px;border-radius:10px;text-align:center;cursor:pointer;border:2px solid var(--glass-border);font-size:12px;font-weight:500;transition:var(--transition);display:flex;flex-direction:column;align-items:center;gap:4px;}
+.sound-option:hover{border-color:var(--primary);transform:translateY(-2px);}
+.sound-option.selected{border-color:var(--primary);background:rgba(108,99,255,0.15);color:var(--primary-light);}
+.sound-option .sound-icon{font-size:20px;}
+.sound-option .sound-name{font-size:11px;}
+.sound-preview-btn{background:none;border:none;color:var(--accent1);cursor:pointer;font-size:14px;padding:2px;}
+.sound-preview-btn:hover{color:var(--primary);}
+
+/* Interval Section */
+.interval-section{display:none;margin-top:12px;padding:16px;background:var(--glass);border-radius:12px;border:1px solid var(--glass-border);}
+.interval-section.show{display:block;}
+.interval-presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.interval-preset{padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;border:1px solid var(--glass-border);background:transparent;color:inherit;transition:var(--transition);font-family:inherit;font-weight:500;}
+.interval-preset:hover,.interval-preset.selected{background:var(--accent1);color:#000;border-color:var(--accent1);}
+
+/* Recurring */
+.recurring-options{display:flex;gap:8px;flex-wrap:wrap;}
+.recurring-opt{padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);transition:var(--transition);font-family:inherit;color:inherit;font-weight:500;}
+.recurring-opt:hover,.recurring-opt.selected{background:var(--accent1);color:#000;border-color:var(--accent1);}
+
+/* Calendar */
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:16px;}
+.cal-header{text-align:center;font-size:12px;font-weight:600;padding:8px;opacity:0.6;}
+.cal-day{text-align:center;padding:10px 4px;border-radius:10px;cursor:pointer;transition:var(--transition);font-size:13px;position:relative;}
+.cal-day:hover{background:var(--glass);}
+.cal-day.today{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;font-weight:600;}
+.cal-day.has-tasks::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:6px;height:6px;background:var(--secondary);border-radius:50%;}
+.cal-day.other-month{opacity:0.3;}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.cal-nav h3{font-size:16px;font-weight:600;}
+
+/* Kanban */
+.kanban-board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;}
+.kanban-column{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px;min-height:300px;}
+.kanban-header{display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:14px;font-weight:600;}
+.kanban-header .count{background:var(--glass);padding:2px 8px;border-radius:6px;font-size:12px;}
+.kanban-tasks{display:flex;flex-direction:column;gap:8px;min-height:50px;}
+.kanban-task{background:var(--bg-card-dark);border:1px solid var(--glass-border);border-radius:12px;padding:14px;cursor:grab;transition:var(--transition);}
+.kanban-task:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
+.kanban-task .kt-title{font-size:13px;font-weight:600;margin-bottom:6px;}
+.kanban-task .kt-meta{font-size:11px;opacity:0.6;}
+
+/* Toast */
+.toast-container{position:fixed;top:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-card-dark);border:1px solid var(--glass-border);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,0.3);animation:slideInRight 0.3s ease;min-width:280px;max-width:400px;}
+@keyframes slideInRight{from{opacity:0;transform:translateX(100px);}to{opacity:1;transform:translateX(0);}}
+.toast-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.toast-success .toast-icon{background:rgba(107,203,119,0.15);color:var(--accent3);}
+.toast-warning .toast-icon{background:rgba(255,217,61,0.15);color:var(--accent2);}
+.toast-error .toast-icon{background:rgba(255,107,107,0.15);color:var(--accent4);}
+.toast-info .toast-icon{background:rgba(108,99,255,0.15);color:var(--primary);}
+.toast-content{flex:1;}
+.toast-title{font-size:13px;font-weight:600;}
+.toast-msg{font-size:12px;opacity:0.6;margin-top:2px;}
+
+.section-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.section-title i{color:var(--primary);}
+
+.content-section{display:none;}
+.content-section.active{display:block;}
+
+.myday-header{background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:var(--radius);padding:32px;margin-bottom:24px;color:white;position:relative;overflow:hidden;}
+.myday-header::after{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.1);}
+.myday-header h2{font-size:24px;font-weight:700;position:relative;z-index:1;}
+.myday-header p{opacity:0.8;margin-top:4px;position:relative;z-index:1;}
+.myday-header .date-big{font-size:48px;font-weight:800;opacity:0.2;position:absolute;right:32px;top:50%;transform:translateY(-50%);}
+
+.empty-state{text-align:center;padding:60px 20px;opacity:0.6;}
+.empty-state i{font-size:48px;margin-bottom:16px;}
+.empty-state h3{font-size:18px;margin-bottom:8px;}
+
+/* Logo Modal */
+.logo-modal-content{text-align:center;}
+.logo-preview{width:80px;height:80px;border-radius:16px;margin:16px auto;background:var(--glass);border:2px dashed var(--glass-border);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.logo-preview img{width:100%;height:100%;object-fit:cover;}
+
+/* Install Prompt */
+.install-prompt{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg-card-dark);border:1px solid var(--glass-border);border-radius:16px;padding:16px 24px;display:none;align-items:center;gap:16px;z-index:500;box-shadow:0 10px 40px rgba(0,0,0,0.3);max-width:400px;}
+.install-prompt.show{display:flex;}
+
+@media(max-width:1024px){
+  .kanban-board{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);width:280px;position:fixed;}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .main-content{margin-left:0!important;padding:16px;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .search-box{min-width:120px;}
+  .myday-header .date-big{display:none;}
+  .task-actions{opacity:1;}
+  .sound-selector{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr;}
+  .action-buttons{flex-direction:column;}
+  .btn{justify-content:center;}
+  .sound-selector{grid-template-columns:1fr 1fr;}
+}
+
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--primary);}
+.dragging{opacity:0.5;}.drag-over{border:2px dashed var(--primary)!important;}
+</style>
+</head>
+<body>
+<div class="bg-animation"><div class="circle"></div><div class="circle"></div><div class="circle"></div><div class="circle"></div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Install Prompt -->
+<div class="install-prompt" id="installPrompt">
+  <div><div style="font-weight:600;font-size:14px">📲 Инсталирај TaskFlow</div><div style="font-size:12px;opacity:0.6;margin-top:4px">Додај на почетен екран</div></div>
+  <button class="btn btn-sm btn-primary" id="installBtn">Инсталирај</button>
+  <button class="btn btn-sm btn-outline" onclick="document.getElementById('installPrompt').classList.remove('show')">Не</button>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo" onclick="openLogoModal()">
+    <div class="logo-icon" id="logoIcon">
+      <span id="logoLetter">T</span>
+      <img id="logoImg" style="display:none" alt="Logo">
+      <div class="logo-overlay sidebar-text"><i class="fas fa-camera"></i></div>
+    </div>
+    <div class="logo-text sidebar-text">Task<span>Flow</span></div>
+  </div>
+  <input type="file" id="logoUpload" accept="image/*" onchange="handleLogoUpload(event)">
+
+  <div class="nav-section">
+    <div class="nav-label sidebar-text">Главно Мени</div>
+    <div class="nav-item active" onclick="switchSection('dashboard')" data-section="dashboard"><i class="fas fa-th-large"></i><span class="sidebar-text">Dashboard</span></div>
+    <div class="nav-item" onclick="switchSection('myday')" data-section="myday"><i class="fas fa-sun"></i><span class="sidebar-text">Мој Ден</span><span class="badge sidebar-text" id="todayCount">0</span></div>
+    <div class="nav-item" onclick="switchSection('tasks')" data-section="tasks"><i class="fas fa-tasks"></i><span class="sidebar-text">Задачи</span><span class="badge sidebar-text" id="taskCount">0</span></div>
+    <div class="nav-item" onclick="switchSection('reminders')" data-section="reminders"><i class="fas fa-bell"></i><span class="sidebar-text">Потсетници</span><span class="badge sidebar-text" id="reminderCount">0</span></div>
+    <div class="nav-item" onclick="switchSection('calendar')" data-section="calendar"><i class="fas fa-calendar-alt"></i><span class="sidebar-text">Календар</span></div>
+    <div class="nav-item" onclick="switchSection('kanban')" data-section="kanban"><i class="fas fa-columns"></i><span class="sidebar-text">Kanban Board</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label sidebar-text">Категории</div>
+    <div class="categories-list">
+      <div class="cat-item" onclick="filterByCategory('work')"><div class="cat-dot" style="background:var(--primary)"></div><span class="sidebar-text">Работа</span></div>
+      <div class="cat-item" onclick="filterByCategory('personal')"><div class="cat-dot" style="background:var(--secondary)"></div><span class="sidebar-text">Лично</span></div>
+      <div class="cat-item" onclick="filterByCategory('health')"><div class="cat-dot" style="background:var(--accent3)"></div><span class="sidebar-text">Здравје</span></div>
+      <div class="cat-item" onclick="filterByCategory('shopping')"><div class="cat-dot" style="background:var(--accent2)"></div><span class="sidebar-text">Шопинг</span></div>
+      <div class="cat-item" onclick="filterByCategory('study')"><div class="cat-dot" style="background:var(--accent1)"></div><span class="sidebar-text">Учење</span></div>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-title">Денешен Прогрес</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-text" id="progressText">0% завршено</div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+  <div class="top-bar">
+    <div class="top-left">
+      <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="page-title"><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Добредојдовте назад!</p></div>
+    </div>
+    <div class="top-right">
+      <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Пребарувај..." id="searchInput" oninput="searchTasks()"></div>
+      <button class="icon-btn" onclick="toggleNotifications()"><i class="fas fa-bell"></i><span class="notif-dot" id="notifDot" style="display:none"></span></button>
+      <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="content-section active" id="section-dashboard">
+    <div class="action-buttons">
+      <button class="btn btn-primary" onclick="openModal('task')"><i class="fas fa-plus"></i> Нова Задача</button>
+      <button class="btn btn-secondary" onclick="openModal('reminder')"><i class="fas fa-bell"></i> Нов Потсетник</button>
+      <button class="btn btn-accent" onclick="switchSection('kanban')"><i class="fas fa-columns"></i> Kanban</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-list-check"></i></div><div class="stat-value" id="statTotal">0</div><div class="stat-label">Вкупно Задачи</div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-spinner"></i></div><div class="stat-value" id="statProgress">0</div><div class="stat-label">Во Тек</div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-value" id="statDone">0</div><div class="stat-label">Завршени</div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-value" id="statReminders">0</div><div class="stat-label">Потсетници</div></div>
+    </div>
+    <div class="section-title"><i class="fas fa-fire"></i> Неодамнешни Задачи</div>
+    <div class="tasks-container" id="recentTasks"></div>
+  </div>
+
+  <!-- My Day -->
+  <div class="content-section" id="section-myday">
+    <div class="myday-header"><h2>☀️ Мој Ден</h2><p id="mydayDate"></p><div class="date-big" id="mydayDateBig"></div></div>
+    <div class="action-buttons"><button class="btn btn-primary" onclick="openModal('task')"><i class="fas fa-plus"></i> Задача за Денес</button></div>
+    <div class="tasks-container" id="todayTasks"></div>
+  </div>
+
+  <!-- Tasks -->
+  <div class="content-section" id="section-tasks">
+    <div class="action-buttons">
+      <button class="btn btn-primary" onclick="openModal('task')"><i class="fas fa-plus"></i> Нова Задача</button>
+      <button class="btn btn-outline" onclick="clearCompleted()"><i class="fas fa-broom"></i> Исчисти Завршени</button>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-chip active" onclick="filterTasks('all',this)">Сите</button>
+      <button class="filter-chip" onclick="filterTasks('todo',this)">📋 To Do</button>
+      <button class="filter-chip" onclick="filterTasks('progress',this)">🔄 Во Тек</button>
+      <button class="filter-chip" onclick="filterTasks('done',this)">✅ Завршени</button>
+      <button class="filter-chip" onclick="filterTasks('high',this)">🔴 Висок</button>
+      <button class="filter-chip" onclick="filterTasks('medium',this)">🟡 Среден</button>
+      <button class="filter-chip" onclick="filterTasks('low',this)">🟢 Низок</button>
+    </div>
+    <div class="tasks-container" id="allTasks"></div>
+  </div>
+
+  <!-- Reminders -->
+  <div class="content-section" id="section-reminders">
+    <div class="action-buttons"><button class="btn btn-secondary" onclick="openModal('reminder')"><i class="fas fa-bell"></i> Нов Потсетник</button></div>
+    <div class="section-title"><i class="fas fa-bell"></i> Активни Потсетници</div>
+    <div id="activeReminders"></div>
+    <div class="section-title" style="margin-top:24px"><i class="fas fa-check"></i> Завршени</div>
+    <div id="doneReminders"></div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="content-section" id="section-calendar">
+    <div class="cal-nav">
+      <button class="icon-btn" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+      <h3 id="calMonthYear"></h3>
+      <button class="icon-btn" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+    <div style="margin-top:24px">
+      <div class="section-title"><i class="fas fa-calendar-day"></i> <span id="selectedDateTitle">Задачи за денес</span></div>
+      <div id="calendarTasks"></div>
+    </div>
+  </div>
+
+  <!-- Kanban -->
+  <div class="content-section" id="section-kanban">
+    <div class="action-buttons"><button class="btn btn-primary" onclick="openModal('task')"><i class="fas fa-plus"></i> Нова Задача</button></div>
+    <div class="kanban-board">
+      <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event,'todo')">
+        <div class="kanban-header"><span style="color:var(--accent5)">📋</span> To Do <span class="count" id="kanban-todo-count">0</span></div>
+        <div class="kanban-tasks" id="kanban-todo-tasks"></div>
+      </div>
+      <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event,'progress')">
+        <div class="kanban-header"><span style="color:var(--accent2)">🔄</span> Во Тек <span class="count" id="kanban-progress-count">0</span></div>
+        <div class="kanban-tasks" id="kanban-progress-tasks"></div>
+      </div>
+      <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event,'done')">
+        <div class="kanban-header"><span style="color:var(--accent3)">✅</span> Завршено <span class="count" id="kanban-done-count">0</span></div>
+        <div class="kanban-tasks" id="kanban-done-tasks"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="taskModalTitle">✨ Нова Задача</h2>
+      <button class="modal-close" onclick="closeModal('taskModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form onsubmit="saveTask(event)">
+      <div class="form-group">
+        <label class="form-label">Наслов *</label>
+        <input type="text" class="form-input" id="taskTitle" placeholder="Внесете наслов..." required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Опис</label>
+        <textarea class="form-textarea" id="taskDesc" placeholder="Додадете опис..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Датум</label><input type="date" class="form-input" id="taskDate"></div>
+        <div class="form-group"><label class="form-label">Време</label><input type="time" class="form-input" id="taskTime"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Приоритет</label>
+        <div class="priority-selector">
+          <div class="priority-option high" onclick="selectPriority('high')">🔴 Висок</div>
+          <div class="priority-option medium selected" onclick="selectPriority('medium')">🟡 Среден</div>
+          <div class="priority-option low" onclick="selectPriority('low')">🟢 Низок</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Категорија</label>
+          <select class="form-select" id="taskCategory"><option value="work">💼 Работа</option><option value="personal">👤 Лично</option><option value="health">💚 Здравје</option><option value="shopping">🛒 Шопинг</option><option value="study">📚 Учење</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Статус</label>
+          <select class="form-select" id="taskStatus"><option value="todo">📋 To Do</option><option value="progress">🔄 Во Тек</option><option value="done">✅ Завршено</option></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Повторување</label>
+        <div class="recurring-options" id="taskRecurring">
+          <button type="button" class="recurring-opt selected" onclick="selectRecurring('none',this,'task')">Без</button>
+          <button type="button" class="recurring-opt" onclick="selectRecurring('daily',this,'task')">Дневно</button>
+          <button type="button" class="recurring-opt" onclick="selectRecurring('weekly',this,'task')">Неделно</button>
+          <button type="button" class="recurring-opt" onclick="selectRecurring('monthly',this,'task')">Месечно</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🔊 Звук на аларм</label>
+        <div class="sound-selector" id="taskSoundSelector"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Подзадачи</label>
+        <div class="subtask-input-group">
+          <input type="text" class="form-input" id="subtaskInput" placeholder="Додади подзадача...">
+          <button type="button" class="btn btn-sm btn-primary" onclick="addSubtask()"><i class="fas fa-plus"></i></button>
+        </div>
+        <div class="subtask-list-form" id="subtaskList"></div>
+      </div>
+      <input type="hidden" id="editTaskId">
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px">
+        <i class="fas fa-save"></i> <span id="taskBtnText">Зачувај Задача</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Reminder Modal -->
+<div class="modal-overlay" id="reminderModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="reminderModalTitle">⏰ Нов Потсетник</h2>
+      <button class="modal-close" onclick="closeModal('reminderModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form onsubmit="saveReminder(event)">
+      <div class="form-group">
+        <label class="form-label">Наслов *</label>
+        <input type="text" class="form-input" id="reminderTitle" placeholder="За што е потсетникот..." required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Белешка</label>
+        <textarea class="form-textarea" id="reminderNote" placeholder="Додадете белешка..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Датум *</label><input type="date" class="form-input" id="reminderDate" required></div>
+        <div class="form-group"><label class="form-label">Време *</label><input type="time" class="form-input" id="reminderTime" required></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Повторување</label>
+        <div class="recurring-options" id="reminderRecurring">
+          <button type="button" class="recurring-opt selected" onclick="selectRecurring('none',this,'reminder')">Без</button>
+          <button type="button" class="recurring-opt" onclick="selectRecurring('daily',this,'reminder')">Дневно</button>
+          <button type="button" class="recurring-opt" onclick="selectRecurring('weekly',this,'reminder')">Неделно</button>
+          <button type="button" class="recurring-opt" onclick="selectRecurring('monthly',this,'reminder')">Месечно</button>
+          <button type="button" class="recurring-opt" onclick="selectRecurring('interval',this,'reminder')">⏱️ Интервал</button>
+        </div>
+      </div>
+      <div class="interval-section" id="intervalSection">
+        <label class="form-label">На секои колку минути?</label>
+        <div class="interval-presets">
+          <button type="button" class="interval-preset" onclick="selectInterval(15,this)">15 мин</button>
+          <button type="button" class="interval-preset" onclick="selectInterval(30,this)">30 мин</button>
+          <button type="button" class="interval-preset" onclick="selectInterval(45,this)">45 мин</button>
+          <button type="button" class="interval-preset selected" onclick="selectInterval(60,this)">60 мин</button>
+          <button type="button" class="interval-preset" onclick="selectInterval(90,this)">90 мин</button>
+          <button type="button" class="interval-preset" onclick="selectInterval(120,this)">120 мин</button>
+        </div>
+        <div class="form-row" style="margin-top:12px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Или внеси минути:</label>
+            <input type="number" class="form-input" id="customInterval" min="1" max="1440" placeholder="нпр. 45" oninput="customIntervalVal=parseInt(this.value)||60">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Крај на повторување:</label>
+            <input type="time" class="form-input" id="intervalEndTime" value="23:00">
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🔊 Звук на аларм</label>
+        <div class="sound-selector" id="reminderSoundSelector"></div>
+      </div>
+      <input type="hidden" id="editReminderId">
+      <button type="submit" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:8px">
+        <i class="fas fa-bell"></i> <span id="reminderBtnText">Зачувај Потсетник</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Logo Modal -->
+<div class="modal-overlay" id="logoModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2>🖼️ Промени Лого</h2>
+      <button class="modal-close" onclick="closeModal('logoModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="logo-modal-content">
+      <div class="logo-preview" id="logoPreview">
+        <i class="fas fa-image" style="font-size:24px;opacity:0.3"></i>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Upload слика</label>
+        <button type="button" class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="document.getElementById('logoUpload').click()">
+          <i class="fas fa-upload"></i> Избери Слика
+        </button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Или внеси URL</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" class="form-input" id="logoUrlInput" placeholder="https://...">
+          <button type="button" class="btn btn-sm btn-accent" onclick="setLogoFromUrl()"><i class="fas fa-check"></i></button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="removeLogo()">
+        <i class="fas fa-trash"></i> Отстрани Лого
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================
+// STATE
+// ============================
+let tasks = JSON.parse(localStorage.getItem('tf_tasks')) || [];
+let reminders = JSON.parse(localStorage.getItem('tf_reminders')) || [];
+let currentFilter = 'all';
+let currentCategoryFilter = null;
+let selectedPriority = 'medium';
+let selectedTaskRecurring = 'none';
+let selectedReminderRecurring = 'none';
+let selectedTaskSound = 'bell';
+let selectedReminderSound = 'bell';
+let intervalMinutes = 60;
+let customIntervalVal = 60;
+let tempSubtasks = [];
+let currentCalMonth = new Date().getMonth();
+let currentCalYear = new Date().getFullYear();
+let selectedCalDate = new Date().toISOString().split('T')[0];
+let editMode = false;
+let firedReminders = new Set(JSON.parse(localStorage.getItem('tf_fired'))||[]);
+
+// ============================
+// ALARM SOUNDS (Web Audio API)
+// ============================
+const SOUNDS = {
+  none:    { name:'Без звук', icon:'🔇', notes:[], type:'sine', dur:0 },
+  bell:    { name:'Ѕвонче', icon:'🔔', notes:[800,600,800,600], type:'sine', dur:0.18 },
+  alarm:   { name:'Аларм', icon:'⏰', notes:[440,880,440,880,440,880], type:'square', dur:0.15 },
+  chime:   { name:'Чајм', icon:'🎵', notes:[523,659,784,1047], type:'sine', dur:0.3 },
+  notify:  { name:'Нотификација', icon:'📱', notes:[1200,900,1200], type:'triangle', dur:0.12 },
+  melody:  { name:'Мелодија', icon:'🎶', notes:[262,330,392,523,392,330,262], type:'sine', dur:0.22 },
+  digital: { name:'Дигитален', icon:'💻', notes:[1000,0,1000,0,1000], type:'square', dur:0.12 },
+  gentle:  { name:'Нежен', icon:'🌸', notes:[400,450,500,550,600], type:'sine', dur:0.35 },
+  urgent:  { name:'Итен', icon:'🚨', notes:[880,0,880,0,880,0,880,0,880], type:'sawtooth', dur:0.08 }
+};
+
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(soundKey) {
+  if (soundKey === 'none') return;
+  const s = SOUNDS[soundKey];
+  if (!s || !s.notes.length) return;
+  const ctx = getAudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  let time = ctx.currentTime;
+  s.notes.forEach((freq, i) => {
+    if (freq === 0) { time += s.dur; return; }
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = s.type;
+    osc.frequency.setValueAtTime(freq, time);
+    gain.gain.setValueAtTime(0.3, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + s.dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(time);
+    osc.stop(time + s.dur);
+    time += s.dur + 0.02;
+  });
+}
+
+function renderSoundSelector(containerId, selectedSound, type) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = Object.entries(SOUNDS).map(([key, s]) => `
+    <div class="sound-option ${key === selectedSound ? 'selected' : ''}" onclick="selectSound('${key}','${type}',this)">
+      <div class="sound-icon">${s.icon}</div>
+      <div class="sound-name">${s.name}</div>
+      ${key !== 'none' ? `<button type="button" class="sound-preview-btn" onclick="event.stopPropagation();playSound('${key}')" title="Преслушај"><i class="fas fa-play"></i></button>` : ''}
+    </div>
+  `).join('');
+}
+
+function selectSound(key, type, el) {
+  if (type === 'task') selectedTaskSound = key;
+  else selectedReminderSound = key;
+  el.parentElement.querySelectorAll('.sound-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ============================
+// INIT
+// ============================
+document.addEventListener('DOMContentLoaded', () => {
+  if (Notification.permission !== 'granted' && Notification.permission !== 'denied') Notification.requestPermission();
+  const today = new Date();
+  document.getElementById('taskDate').value = today.toISOString().split('T')[0];
+  document.getElementById('reminderDate').value = today.toISOString().split('T')[0];
+  updateMyDayHeader();
+  loadLogo();
+  renderSoundSelector('taskSoundSelector', selectedTaskSound, 'task');
+  renderSoundSelector('reminderSoundSelector', selectedReminderSound, 'reminder');
+  if (tasks.length === 0 && reminders.length === 0) addSampleData();
+  renderAll();
+  startReminderChecker();
+  registerSW();
+  // Subtask enter key
+  document.getElementById('subtaskInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSubtask(); } });
+});
+
+function addSampleData() {
+  const today = new Date().toISOString().split('T')[0];
+  const n = Date.now();
+  tasks = [
+    { id:n+1, title:'Заврши го проектот', desc:'Финална верзија', date:today, time:'14:00', priority:'high', category:'work', status:'progress', recurring:'none', sound:'alarm', subtasks:[{text:'Дизајн',done:true},{text:'Код',done:false},{text:'Тестирање',done:false}], createdAt:n },
+    { id:n+2, title:'Купи намирници', desc:'Млеко, леб, јајца', date:today, time:'18:00', priority:'medium', category:'shopping', status:'todo', recurring:'none', sound:'bell', subtasks:[{text:'Млеко',done:false},{text:'Леб',done:false}], createdAt:n },
+    { id:n+3, title:'Утринска вежба', desc:'30 мин трчање', date:today, time:'07:00', priority:'low', category:'health', status:'done', recurring:'daily', sound:'gentle', subtasks:[], createdAt:n },
+    { id:n+4, title:'Прочитај книга', desc:'Глава 5-7', date:today, time:'21:00', priority:'medium', category:'study', status:'todo', recurring:'none', sound:'chime', subtasks:[], createdAt:n },
+    { id:n+5, title:'Јави се на мама', desc:'', date:today, time:'19:00', priority:'high', category:'personal', status:'todo', recurring:'weekly', sound:'melody', subtasks:[], createdAt:n },
+  ];
+  reminders = [
+    { id:n+10, title:'Состанок со тим', note:'Zoom линк', date:today, time:'10:00', recurring:'none', intervalMinutes:0, intervalEnd:'', sound:'alarm', snoozed:false, done:false, lastFired:0, createdAt:n },
+    { id:n+11, title:'Земи лекови', note:'По ручек', date:today, time:'13:00', recurring:'daily', intervalMinutes:0, intervalEnd:'', sound:'bell', snoozed:false, done:false, lastFired:0, createdAt:n },
+    { id:n+12, title:'Пиј вода', note:'Хидрација!', date:today, time:'08:00', recurring:'interval', intervalMinutes:60, intervalEnd:'22:00', sound:'gentle', snoozed:false, done:false, lastFired:0, createdAt:n },
+  ];
+  saveData();
+}
+
+// ============================
+// SAVE/LOAD
+// ============================
+function saveData() {
+  localStorage.setItem('tf_tasks', JSON.stringify(tasks));
+  localStorage.setItem('tf_reminders', JSON.stringify(reminders));
+  localStorage.setItem('tf_fired', JSON.stringify([...firedReminders]));
+}
+
+// ============================
+// RENDER ALL
+// ============================
+function renderAll() {
+  renderStats(); renderRecentTasks(); renderAllTasks();
+  renderTodayTasks(); renderReminders(); renderCalendar();
+  renderKanban(); updateCounts(); updateProgress();
+}
+
+function renderStats() {
+  document.getElementById('statTotal').textContent = tasks.length;
+  document.getElementById('statProgress').textContent = tasks.filter(t=>t.status==='progress').length;
+  document.getElementById('statDone').textContent = tasks.filter(t=>t.status==='done').length;
+  document.getElementById('statReminders').textContent = reminders.filter(r=>!r.done).length;
+}
+
+function updateCounts() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('taskCount').textContent = tasks.filter(t=>t.status!=='done').length;
+  document.getElementById('reminderCount').textContent = reminders.filter(r=>!r.done).length;
+  document.getElementById('todayCount').textContent = tasks.filter(t=>t.date===today&&t.status!=='done').length;
+}
+
+function updateProgress() {
+  const today = new Date().toISOString().split('T')[0];
+  const tt = tasks.filter(t=>t.date===today);
+  const done = tt.filter(t=>t.status==='done').length;
+  const pct = tt.length ? Math.round((done/tt.length)*100) : 0;
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressText').textContent = `${pct}% завршено (${done}/${tt.length})`;
+}
+
+// ============================
+// TASK RENDERING
+// ============================
+function createTaskHTML(task) {
+  const done = task.status==='done';
+  const catL = {work:'Работа',personal:'Лично',health:'Здравје',shopping:'Шопинг',study:'Учење'};
+  const stL = {todo:'To Do',progress:'Во Тек',done:'Завршено'};
+  const stC = {todo:'status-todo',progress:'status-progress',done:'status-done'};
+  const recL = {none:'',daily:'🔄 Дневно',weekly:'🔄 Неделно',monthly:'🔄 Месечно'};
+  const soundLabel = task.sound && SOUNDS[task.sound] ? SOUNDS[task.sound].icon : '';
+
+  let sub = '';
+  if (task.subtasks && task.subtasks.length) {
+    sub = '<div class="subtasks">' + task.subtasks.map((s,i) => `
+      <div class="subtask-item">
+        <div class="subtask-check ${s.done?'checked':''}" onclick="event.stopPropagation();toggleSubtask(${task.id},${i})">
+          ${s.done?'<i class="fas fa-check" style="font-size:10px;color:white"></i>':''}
+        </div>
+        <span style="${s.done?'text-decoration:line-through;opacity:0.5':''}">${s.text}</span>
+      </div>`).join('') + '</div>';
+  }
+
+  return `
+    <div class="task-card ${done?'completed':''} priority-${task.priority}" data-id="${task.id}">
+      <div class="priority-indicator"></div>
+      <div class="task-checkbox ${done?'checked':''}" onclick="toggleTask(${task.id})">
+        ${done?'<i class="fas fa-check"></i>':''}
+      </div>
+      <div class="task-info">
+        <div class="task-title">${task.title}</div>
+        <div class="task-meta">
+          ${task.date?`<span><i class="fas fa-calendar"></i> ${formatDate(task.date)}</span>`:''}
+          ${task.time?`<span><i class="fas fa-clock"></i> ${task.time}</span>`:''}
+          ${task.recurring!=='none'?`<span>${recL[task.recurring]||''}</span>`:''}
+          ${task.subtasks&&task.subtasks.length?`<span><i class="fas fa-list"></i> ${task.subtasks.filter(s=>s.done).length}/${task.subtasks.length}</span>`:''}
+          ${soundLabel?`<span>${soundLabel}</span>`:''}
+        </div>
+        <div class="task-tags">
+          <span class="task-tag tag-${task.category}">${catL[task.category]}</span>
+          <span class="status-badge ${stC[task.status]}">${stL[task.status]}</span>
+        </div>
+        ${sub}
+      </div>
+      <div class="task-actions">
+        <button class="task-action-btn" onclick="event.stopPropagation();changeStatus(${task.id})" title="Промени статус"><i class="fas fa-arrow-right"></i></button>
+        <button class="task-action-btn" onclick="event.stopPropagation();editTask(${task.id})" title="Уреди"><i class="fas fa-edit"></i></button>
+        <button class="task-action-btn delete" onclick="event.stopPropagation();deleteTask(${task.id})" title="Избриши"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`;
+}
+
+function renderRecentTasks() {
+  const c = document.getElementById('recentTasks');
+  const r = [...tasks].sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
+  c.innerHTML = r.length ? r.map(t=>createTaskHTML(t)).join('') : '<div class="empty-state"><i class="fas fa-inbox"></i><h3>Нема задачи</h3><p>Додадете ја вашата прва задача!</p></div>';
+}
+
+function renderAllTasks() {
+  const c = document.getElementById('allTasks');
+  let f = [...tasks];
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  if (search) f = f.filter(t=>t.title.toLowerCase().includes(search)||(t.desc&&t.desc.toLowerCase().includes(search)));
+  if (currentCategoryFilter) f = f.filter(t=>t.category===currentCategoryFilter);
+  if (currentFilter==='todo') f=f.filter(t=>t.status==='todo');
+  else if (currentFilter==='progress') f=f.filter(t=>t.status==='progress');
+  else if (currentFilter==='done') f=f.filter(t=>t.status==='done');
+  else if (currentFilter==='high') f=f.filter(t=>t.priority==='high');
+  else if (currentFilter==='medium') f=f.filter(t=>t.priority==='medium');
+  else if (currentFilter==='low') f=f.filter(t=>t.priority==='low');
+  f.sort((a,b)=>{const po={high:0,medium:1,low:2};const so={todo:0,progress:1,done:2};return so[a.status]-so[b.status]||po[a.priority]-po[b.priority];});
+  c.innerHTML = f.length ? f.map(t=>createTaskHTML(t)).join('') : '<div class="empty-state"><i class="fas fa-search"></i><h3>Нема резултати</h3></div>';
+}
+
+function renderTodayTasks() {
+  const c = document.getElementById('todayTasks');
+  const today = new Date().toISOString().split('T')[0];
+  const tt = tasks.filter(t=>t.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  c.innerHTML = tt.length ? tt.map(t=>createTaskHTML(t)).join('') : '<div class="empty-state"><i class="fas fa-sun"></i><h3>Нема задачи за денес</h3></div>';
+}
+
+// ============================
+// REMINDERS RENDERING
+// ============================
+function renderReminders() {
+  const ac = document.getElementById('activeReminders');
+  const dc = document.getElementById('doneReminders');
+  const active = reminders.filter(r=>!r.done).sort((a,b)=>`${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
+  const done = reminders.filter(r=>r.done);
+  const recL = {none:'',daily:'🔄 Дневно',weekly:'🔄 Неделно',monthly:'🔄 Месечно',interval:'⏱️ Интервал'};
+
+  if (!active.length) {
+    ac.innerHTML = '<div class="empty-state"><i class="fas fa-bell-slash"></i><h3>Нема активни потсетници</h3></div>';
+  } else {
+    ac.innerHTML = active.map(r => {
+      const isOverdue = new Date(`${r.date}T${r.time}`) <= new Date();
+      const soundIcon = r.sound && SOUNDS[r.sound] ? SOUNDS[r.sound].icon : '🔔';
+      const intervalInfo = r.recurring==='interval' ? ` | На секои ${r.intervalMinutes} мин (до ${r.intervalEnd||'23:00'})` : '';
+      return `
+        <div class="reminder-card ${isOverdue?'active-reminder':''}">
+          <div class="reminder-icon"><i class="fas fa-${isOverdue?'exclamation-triangle':'bell'}"></i></div>
+          <div class="reminder-info">
+            <div class="reminder-title">${r.title} ${soundIcon}</div>
+            <div class="reminder-time">
+              📅 ${formatDate(r.date)} ⏰ ${r.time}
+              ${r.recurring!=='none'?' | '+recL[r.recurring]:''}${intervalInfo}
+              ${r.note?' | 📝 '+r.note:''}
+              ${r.snoozed?' | 😴 Одложен':''}
+            </div>
+            ${isOverdue?`
+              <div class="snooze-btns">
+                <button class="snooze-btn" onclick="snoozeReminder(${r.id},5)">5 мин</button>
+                <button class="snooze-btn" onclick="snoozeReminder(${r.id},15)">15 мин</button>
+                <button class="snooze-btn" onclick="snoozeReminder(${r.id},30)">30 мин</button>
+                <button class="snooze-btn" onclick="snoozeReminder(${r.id},60)">1 час</button>
+                <button class="snooze-btn" onclick="completeReminder(${r.id})" style="background:var(--accent3);color:white;border-color:var(--accent3)">✓ Готово</button>
+              </div>`:''}
+          </div>
+          <div class="task-actions" style="opacity:1">
+            <button class="task-action-btn" onclick="editReminder(${r.id})" title="Уреди"><i class="fas fa-edit"></i></button>
+            <button class="task-action-btn" onclick="completeReminder(${r.id})" title="Заврши"><i class="fas fa-check"></i></button>
+            <button class="task-action-btn delete" onclick="deleteReminder(${r.id})" title="Избриши"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  dc.innerHTML = done.length ? done.map(r => `
+    <div class="reminder-card" style="opacity:0.5">
+      <div class="reminder-icon" style="background:rgba(107,203,119,0.15);color:var(--accent3)"><i class="fas fa-check"></i></div>
+      <div class="reminder-info">
+        <div class="reminder-title" style="text-decoration:line-through">${r.title}</div>
+        <div class="reminder-time">📅 ${formatDate(r.date)} ⏰ ${r.time}</div>
+      </div>
+      <button class="task-action-btn delete" onclick="deleteReminder(${r.id})"><i class="fas fa-trash"></i></button>
+    </div>`).join('') : '<p style="opacity:0.4;font-size:13px;padding:12px">Нема завршени потсетници</p>';
+}
+
+// ============================
+// CALENDAR
+// ============================
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  const days = ['Пон','Вто','Сре','Чет','Пет','Саб','Нед'];
+  const months = ['Јануари','Февруари','Март','Април','Мај','Јуни','Јули','Август','Септември','Октомври','Ноември','Декември'];
+  document.getElementById('calMonthYear').textContent = months[currentCalMonth]+' '+currentCalYear;
+  const firstDay = new Date(currentCalYear, currentCalMonth, 1);
+  const lastDay = new Date(currentCalYear, currentCalMonth+1, 0);
+  let startDay = (firstDay.getDay()||7)-1;
+  let html = days.map(d=>`<div class="cal-header">${d}</div>`).join('');
+  const prevMonth = new Date(currentCalYear, currentCalMonth, 0);
+  for (let i=startDay-1;i>=0;i--) html+=`<div class="cal-day other-month">${prevMonth.getDate()-i}</div>`;
+  const today = new Date().toISOString().split('T')[0];
+  for (let d=1;d<=lastDay.getDate();d++) {
+    const ds = `${currentCalYear}-${String(currentCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const ht = tasks.some(t=>t.date===ds);
+    html+=`<div class="cal-day${ds===today?' today':''}${ht?' has-tasks':''}${ds===selectedCalDate&&ds!==today?' today':''}" onclick="selectCalDate('${ds}')">${d}</div>`;
+  }
+  const rem = 42-(startDay+lastDay.getDate());
+  for (let i=1;i<=rem&&i<=14;i++) html+=`<div class="cal-day other-month">${i}</div>`;
+  grid.innerHTML = html;
+  renderCalendarTasks();
+}
+
+function selectCalDate(ds) { selectedCalDate=ds; document.getElementById('selectedDateTitle').textContent='Задачи за '+formatDate(ds); renderCalendar(); }
+
+function renderCalendarTasks() {
+  const c = document.getElementById('calendarTasks');
+  const dt = tasks.filter(t=>t.date===selectedCalDate);
+  c.innerHTML = dt.length ? dt.map(t=>createTaskHTML(t)).join('') : '<div class="empty-state"><i class="fas fa-calendar-xmark"></i><h3>Нема задачи</h3></div>';
+}
+
+function changeMonth(dir) { currentCalMonth+=dir; if(currentCalMonth>11){currentCalMonth=0;currentCalYear++;}if(currentCalMonth<0){currentCalMonth=11;currentCalYear--;} renderCalendar(); }
+
+// ============================
+// KANBAN
+// ============================
+function renderKanban() {
+  ['todo','progress','done'].forEach(st => {
+    const c = document.getElementById(`kanban-${st}-tasks`);
+    const t = tasks.filter(x=>x.status===st);
+    document.getElementById(`kanban-${st}-count`).textContent = t.length;
+    const catI = {work:'💼',personal:'👤',health:'💚',shopping:'🛒',study:'📚'};
+    const priC = {high:'var(--accent4)',medium:'var(--accent2)',low:'var(--accent3)'};
+    c.innerHTML = t.map(x => `
+      <div class="kanban-task" draggable="true" ondragstart="dragStart(event,${x.id})">
+        <div class="kt-title"><span style="color:${priC[x.priority]}">●</span> ${x.title}</div>
+        <div class="kt-meta">${catI[x.category]} ${x.date?formatDate(x.date):''} ${x.time||''}</div>
+      </div>`).join('');
+  });
+}
+
+let draggedId = null;
+function dragStart(e,id) { draggedId=id; e.dataTransfer.effectAllowed='move'; }
+function allowDrop(e) { e.preventDefault(); }
+function drop(e,st) { e.preventDefault(); if(draggedId){const t=tasks.find(x=>x.id===draggedId);if(t){t.status=st;saveData();renderAll();showToast('info','Преместено','Статусот е променет!');} draggedId=null;} }
+
+// ============================
+// TASK ACTIONS
+// ============================
+function toggleTask(id) {
+  const t = tasks.find(x=>x.id===id); if(!t)return;
+  t.status = t.status==='done'?'todo':'done';
+  if (t.status==='done') { playSound(t.sound||'bell'); showToast('success','Браво! 🎉','Задачата е завршена!'); }
+  saveData(); renderAll();
+}
+
+function changeStatus(id) {
+  const t = tasks.find(x=>x.id===id); if(!t)return;
+  const o = ['todo','progress','done'];
+  t.status = o[(o.indexOf(t.status)+1)%3];
+  if (t.status==='done') playSound(t.sound||'bell');
+  saveData(); renderAll();
+  showToast('info','Статус',{todo:'To Do',progress:'Во Тек',done:'Завршено'}[t.status]);
+}
+
+function toggleSubtask(tid,si) {
+  const t = tasks.find(x=>x.id===tid); if(!t||!t.subtasks[si])return;
+  t.subtasks[si].done = !t.subtasks[si].done;
+  if (t.subtasks.every(s=>s.done)&&t.subtasks.length) { t.status='done'; playSound(t.sound||'bell'); showToast('success','Сите подзадачи завршени! 🎉',''); }
+  saveData(); renderAll();
+}
+
+function deleteTask(id) { if(!confirm('Избриши задача?'))return; tasks=tasks.filter(t=>t.id!==id); saveData(); renderAll(); showToast('error','Избришано',''); }
+
+function editTask(id) {
+  const t = tasks.find(x=>x.id===id); if(!t)return;
+  editMode = true;
+  document.getElementById('editTaskId').value = id;
+  document.getElementById('taskTitle').value = t.title;
+  document.getElementById('taskDesc').value = t.desc||'';
+  document.getElementById('taskDate').value = t.date||'';
+  document.getElementById('taskTime').value = t.time||'';
+  document.getElementById('taskCategory').value = t.category;
+  document.getElementById('taskStatus').value = t.status;
+  selectedPriority = t.priority;
+  selectedTaskRecurring = t.recurring||'none';
+  selectedTaskSound = t.sound||'bell';
+  tempSubtasks = t.subtasks?[...t.subtasks]:[];
+  document.querySelectorAll('.priority-option').forEach(el=>el.classList.toggle('selected',el.classList.contains(selectedPriority)));
+  document.querySelectorAll('#taskRecurring .recurring-opt').forEach(el=>el.classList.remove('selected'));
+  renderTempSubtasks();
+  renderSoundSelector('taskSoundSelector', selectedTaskSound, 'task');
+  document.getElementById('taskModalTitle').textContent = '✏️ Уреди Задача';
+  document.getElementById('taskBtnText').textContent = 'Ажурирај';
+  openModal('task');
+}
+
+function clearCompleted() {
+  const cnt = tasks.filter(t=>t.status==='done').length;
+  if(!cnt){showToast('warning','Нема','Нема завршени задачи.');return;}
+  if(!confirm(`Избриши ${cnt} завршени?`))return;
+  tasks=tasks.filter(t=>t.status!=='done'); saveData(); renderAll();
+  showToast('success','Исчистено',cnt+' избришани.');
+}
+
+// ============================
+// REMINDER ACTIONS
+// ============================
+function snoozeReminder(id, min) {
+  const r = reminders.find(x=>x.id===id); if(!r)return;
+  const nt = new Date(new Date(`${r.date}T${r.time}`).getTime()+min*60000);
+  r.date = nt.toISOString().split('T')[0];
+  r.time = nt.toTimeString().slice(0,5);
+  r.snoozed = true;
+  firedReminders.delete(id+'_'+r.date+'_'+r.time);
+  saveData(); renderAll();
+  showToast('warning','😴 Одложен',`За ${min} мин.`);
+}
+
+function completeReminder(id) {
+  const r = reminders.find(x=>x.id===id); if(!r)return;
+  if (r.recurring!=='none' && r.recurring!=='interval') {
+    const d = new Date(`${r.date}T${r.time}`);
+    if(r.recurring==='daily') d.setDate(d.getDate()+1);
+    else if(r.recurring==='weekly') d.setDate(d.getDate()+7);
+    else if(r.recurring==='monthly') d.setMonth(d.getMonth()+1);
+    r.date = d.toISOString().split('T')[0];
+    r.snoozed = false;
+    showToast('success','✓ Завршен','Следен: '+formatDate(r.date)+' '+r.time);
+  } else {
+    r.done = true;
+    showToast('success','✓ Завршен','');
+  }
+  saveData(); renderAll();
+}
+
+function deleteReminder(id) { reminders=reminders.filter(r=>r.id!==id); saveData(); renderAll(); showToast('error','Избришано',''); }
+
+function editReminder(id) {
+  const r = reminders.find(x=>x.id===id); if(!r)return;
+  document.getElementById('editReminderId').value = id;
+  document.getElementById('reminderTitle').value = r.title;
+  document.getElementById('reminderNote').value = r.note||'';
+  document.getElementById('reminderDate').value = r.date;
+  document.getElementById('reminderTime').value = r.time;
+  selectedReminderRecurring = r.recurring||'none';
+  selectedReminderSound = r.sound||'bell';
+  intervalMinutes = r.intervalMinutes||60;
+
+  document.querySelectorAll('#reminderRecurring .recurring-opt').forEach(el=>el.classList.remove('selected'));
+
+  if (r.recurring==='interval') {
+    document.getElementById('intervalSection').classList.add('show');
+    document.getElementById('customInterval').value = r.intervalMinutes||60;
+    document.getElementById('intervalEndTime').value = r.intervalEnd||'23:00';
+    document.querySelectorAll('.interval-preset').forEach(el=>el.classList.remove('selected'));
+  } else {
+    document.getElementById('intervalSection').classList.remove('show');
+  }
+
+  renderSoundSelector('reminderSoundSelector', selectedReminderSound, 'reminder');
+  document.getElementById('reminderModalTitle').textContent = '✏️ Уреди Потсетник';
+  document.getElementById('reminderBtnText').textContent = 'Ажурирај';
+  openModal('reminder');
+}
+
+// ============================
+// MODALS
+// ============================
+function openModal(type) {
+  if (type==='task') document.getElementById('taskModal').classList.add('show');
+  else document.getElementById('reminderModal').classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  if (id==='taskModal') {
+    editMode=false;
+    document.getElementById('editTaskId').value='';
+    document.getElementById('taskTitle').value='';
+    document.getElementById('taskDesc').value='';
+    document.getElementById('taskTime').value='';
+    document.getElementById('taskStatus').value='todo';
+    tempSubtasks=[];renderTempSubtasks();
+    selectedPriority='medium'; selectedTaskRecurring='none'; selectedTaskSound='bell';
+    document.querySelectorAll('.priority-option').forEach(el=>el.classList.toggle('selected',el.classList.contains('medium')));
+    document.querySelectorAll('#taskRecurring .recurring-opt').forEach(el=>el.classList.remove('selected'));
+    document.querySelector('#taskRecurring .recurring-opt').classList.add('selected');
+    renderSoundSelector('taskSoundSelector','bell','task');
+    document.getElementById('taskModalTitle').textContent='✨ Нова Задача';
+    document.getElementById('taskBtnText').textContent='Зачувај Задача';
+  }
+  if (id==='reminderModal') {
+    document.getElementById('editReminderId').value='';
+    document.getElementById('reminderTitle').value='';
+    document.getElementById('reminderNote').value='';
+    document.getElementById('intervalSection').classList.remove('show');
+    selectedReminderRecurring='none'; selectedReminderSound='bell'; intervalMinutes=60;
+    document.querySelectorAll('#reminderRecurring .recurring-opt').forEach(el=>el.classList.remove('selected'));
+    document.querySelector('#reminderRecurring .recurring-opt').classList.add('selected');
+    renderSoundSelector('reminderSoundSelector','bell','reminder');
+    document.getElementById('reminderModalTitle').textContent='⏰ Нов Потсетник';
+    document.getElementById('reminderBtnText').textContent='Зачувај Потсетник';
+  }
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) closeModal(el.id); });
+});
+
+// ============================
+// SAVE TASK
+// ============================
+function saveTask(e) {
+  e.preventDefault();
+  const eid = document.getElementById('editTaskId').value;
+  const td = {
+    id: eid ? parseInt(eid) : Date.now(),
+    title: document.getElementById('taskTitle').value,
+    desc: document.getElementById('taskDesc').value,
+    date: document.getElementById('taskDate').value,
+    time: document.getElementById('taskTime').value,
+    priority: selectedPriority,
+    category: document.getElementById('taskCategory').value,
+    status: document.getElementById('taskStatus').value,
+    recurring: selectedTaskRecurring,
+    sound: selectedTaskSound,
+    subtasks: [...tempSubtasks],
+    createdAt: eid ? (tasks.find(t=>t.id===parseInt(eid))?.createdAt||Date.now()) : Date.now()
+  };
+  if (eid) { const i=tasks.findIndex(t=>t.id===parseInt(eid)); if(i!==-1)tasks[i]=td; showToast('success','Ажурирано',''); }
+  else { tasks.push(td); showToast('success','Додадено',''); }
+  saveData(); renderAll(); closeModal('taskModal');
+}
+
+// ============================
+// SAVE REMINDER
+// ============================
+function saveReminder(e) {
+  e.preventDefault();
+  const eid = document.getElementById('editReminderId').value;
+  const intMin = selectedReminderRecurring==='interval' ? (parseInt(document.getElementById('customInterval').value)||intervalMinutes) : 0;
+  const intEnd = selectedReminderRecurring==='interval' ? (document.getElementById('intervalEndTime').value||'23:00') : '';
+  const rd = {
+    id: eid ? parseInt(eid) : Date.now(),
+    title: document.getElementById('reminderTitle').value,
+    note: document.getElementById('reminderNote').value,
+    date: document.getElementById('reminderDate').value,
+    time: document.getElementById('reminderTime').value,
+    recurring: selectedReminderRecurring,
+    intervalMinutes: intMin,
+    intervalEnd: intEnd,
+    sound: selectedReminderSound,
+    snoozed: false, done: false, lastFired: 0,
+    createdAt: eid ? (reminders.find(r=>r.id===parseInt(eid))?.createdAt||Date.now()) : Date.now()
+  };
+  if (eid) {
+    const i=reminders.findIndex(r=>r.id===parseInt(eid));
+    if(i!==-1) { rd.done=reminders[i].done; rd.lastFired=reminders[i].lastFired; reminders[i]=rd; }
+    showToast('success','Ажурирано','Потсетникот е ажуриран!');
+  } else {
+    reminders.push(rd);
+    showToast('success','⏰ Зачувано','');
+  }
+  saveData(); renderAll(); closeModal('reminderModal');
+}
+
+// ============================
+// SUBTASKS
+// ============================
+function addSubtask() {
+  const inp = document.getElementById('subtaskInput');
+  if(!inp.value.trim())return;
+  tempSubtasks.push({text:inp.value.trim(),done:false});
+  inp.value=''; renderTempSubtasks();
+}
+
+function renderTempSubtasks() {
+  document.getElementById('subtaskList').innerHTML = tempSubtasks.map((s,i) => `
+    <div class="subtask-form-item">
+      <i class="fas fa-grip-vertical" style="opacity:0.3"></i>
+      <span>${s.text}</span>
+      <button type="button" class="remove-subtask" onclick="tempSubtasks.splice(${i},1);renderTempSubtasks();"><i class="fas fa-times"></i></button>
+    </div>`).join('');
+}
+
+// ============================
+// SELECTORS
+// ============================
+function selectPriority(p) {
+  selectedPriority=p;
+  document.querySelectorAll('.priority-option').forEach(el=>el.classList.toggle('selected',el.classList.contains(p)));
+}
+
+function selectRecurring(val, btn, type) {
+  if (type==='task') {
+    selectedTaskRecurring=val;
+    document.querySelectorAll('#taskRecurring .recurring-opt').forEach(el=>el.classList.remove('selected'));
+  } else {
+    selectedReminderRecurring=val;
+    document.querySelectorAll('#reminderRecurring .recurring-opt').forEach(el=>el.classList.remove('selected'));
+    document.getElementById('intervalSection').classList.toggle('show', val==='interval');
+  }
+  btn.classList.add('selected');
+}
+
+function selectInterval(min, btn) {
+  intervalMinutes = min;
+  document.getElementById('customInterval').value = min;
+  document.querySelectorAll('.interval-preset').forEach(el=>el.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ============================
+// FILTERS & NAVIGATION
+// ============================
+function filterTasks(filter, btn) {
+  currentFilter=filter; currentCategoryFilter=null;
+  document.querySelectorAll('.filter-chip').forEach(el=>el.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderAllTasks();
+}
+
+function filterByCategory(cat) {
+  currentCategoryFilter = currentCategoryFilter===cat?null:cat;
+  currentFilter='all'; switchSection('tasks'); renderAllTasks();
+}
+
+function searchTasks() { renderAllTasks(); }
+
+function switchSection(section) {
+  document.querySelectorAll('.content-section').forEach(el=>el.classList.remove('active'));
+  document.getElementById('section-'+section).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.querySelector(`.nav-item[data-section="${section}"]`)?.classList.add('active');
+  const t = {dashboard:{t:'Dashboard',s:'Преглед на сите задачи'},myday:{t:'☀️ Мој Ден',s:'Фокус на денешните задачи'},tasks:{t:'📋 Задачи',s:'Управувајте со задачите'},reminders:{t:'⏰ Потсетници',s:'Управувајте со потсетниците'},calendar:{t:'📅 Календар',s:'Визуелен преглед'},kanban:{t:'📊 Kanban',s:'Drag & drop'}};
+  document.getElementById('pageTitle').textContent = t[section]?.t||section;
+  document.getElementById('pageSubtitle').textContent = t[section]?.s||'';
+  document.getElementById('sidebar').classList.remove('mobile-open');
+}
+
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  if(window.innerWidth<=768) s.classList.toggle('mobile-open');
+  else s.classList.toggle('collapsed');
+}
+
+// ============================
+// THEME
+// ============================
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+  const icon = document.getElementById('themeIcon');
+  icon.classList.toggle('fa-moon'); icon.classList.toggle('fa-sun');
+  localStorage.setItem('tf_theme', document.body.classList.contains('light-mode')?'light':'dark');
+  document.querySelector('meta[name="theme-color"]').content = document.body.classList.contains('light-mode')?'#F0F2FF':'#0F0E17';
+}
+if(localStorage.getItem('tf_theme')==='light') {
+  document.body.classList.add('light-mode');
+  document.getElementById('themeIcon').classList.replace('fa-moon','fa-sun');
+}
+
+// ============================
+// LOGO
+// ============================
+function openLogoModal() { closeModal('taskModal'); closeModal('reminderModal'); document.getElementById('logoModal').classList.add('show'); updateLogoPreview(); }
+
+function handleLogoUpload(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    localStorage.setItem('tf_logo', ev.target.result);
+    loadLogo(); updateLogoPreview();
+    showToast('success','Лого','Логото е поставено!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function setLogoFromUrl() {
+  const url = document.getElementById('logoUrlInput').value.trim();
+  if(!url) return;
+  localStorage.setItem('tf_logo', url);
+  loadLogo(); updateLogoPreview();
+  showToast('success','Лого','Логото е поставено!');
+}
+
+function removeLogo() {
+  localStorage.removeItem('tf_logo');
+  document.getElementById('logoImg').style.display='none';
+  document.getElementById('logoLetter').style.display='flex';
+  updateLogoPreview();
+  showToast('info','Лого','Логото е отстрането.');
+}
+
+function loadLogo() {
+  const logo = localStorage.getItem('tf_logo');
+  if(logo) {
+    document.getElementById('logoImg').src = logo;
+    document.getElementById('logoImg').style.display = 'block';
+    document.getElementById('logoLetter').style.display = 'none';
+  }
+}
+
+function updateLogoPreview() {
+  const preview = document.getElementById('logoPreview');
+  const logo = localStorage.getItem('tf_logo');
+  preview.innerHTML = logo ? `<img src="${logo}" alt="Logo">` : '<i class="fas fa-image" style="font-size:24px;opacity:0.3"></i>';
+}
+
+// ============================
+// REMINDER CHECKER
+// ============================
+function startReminderChecker() {
+  checkReminders(); // Check immediately
+  setInterval(checkReminders, 15000); // Every 15 seconds
+}
+
+function checkReminders() {
+  const now = new Date();
+  const nowTime = now.toTimeString().slice(0,5);
+  const todayStr = now.toISOString().split('T')[0];
+  const nowMs = now.getTime();
+
+  reminders.forEach(r => {
+    if(r.done) return;
+
+    if(r.recurring === 'interval' && r.date === todayStr) {
+      // Interval-based reminder
+      const startParts = r.time.split(':').map(Number);
+      const startMs = new Date(todayStr+'T'+r.time).getTime();
+      const endMs = new Date(todayStr+'T'+(r.intervalEnd||'23:00')).getTime();
+      const intMs = (r.intervalMinutes||60) * 60000;
+
+      if(nowMs < startMs || nowMs > endMs) return;
+
+      // Calculate how many intervals have passed
+      const elapsed = nowMs - startMs;
+      const currentInterval = Math.floor(elapsed / intMs);
+      const nextFireMs = startMs + currentInterval * intMs;
+      const fireKey = r.id + '_int_' + currentInterval;
+
+      if(nowMs >= nextFireMs && nowMs < nextFireMs + 20000 && !firedReminders.has(fireKey)) {
+        fireReminder(r);
+        firedReminders.add(fireKey);
+        r.lastFired = nowMs;
+        saveData();
+      }
+    } else {
+      // Standard reminder
+      const fireKey = r.id + '_' + r.date + '_' + r.time;
+      const reminderMs = new Date(`${r.date}T${r.time}`).getTime();
+
+      if(nowMs >= reminderMs && nowMs < reminderMs + 20000 && !firedReminders.has(fireKey)) {
+        fireReminder(r);
+        firedReminders.add(fireKey);
+
+        // Handle recurring
+        if(r.recurring === 'daily') {
+          const d = new Date(`${r.date}T${r.time}`); d.setDate(d.getDate()+1);
+          r.date = d.toISOString().split('T')[0]; r.snoozed = false;
+        } else if(r.recurring === 'weekly') {
+          const d = new Date(`${r.date}T${r.time}`); d.setDate(d.getDate()+7);
+          r.date = d.toISOString().split('T')[0]; r.snoozed = false;
+        } else if(r.recurring === 'monthly') {
+          const d = new Date(`${r.date}T${r.time}`); d.setMonth(d.getMonth()+1);
+          r.date = d.toISOString().split('T')[0]; r.snoozed = false;
+        }
+        saveData();
+      }
+    }
+  });
+
+  // Clean old fired reminders (keep last 200)
+  if(firedReminders.size > 200) {
+    const arr = [...firedReminders];
+    firedReminders = new Set(arr.slice(-100));
+    saveData();
+  }
+
+  renderAll();
+}
+
+function fireReminder(r) {
+  playSound(r.sound||'bell');
+  showToast('warning','⏰ '+r.title, r.note||'Време е!');
+  document.getElementById('notifDot').style.display='block';
+  if(Notification.permission==='granted') {
+    try { new Notification('⏰ TaskFlow: '+r.title, {body:r.note||'Потсетник!',tag:'tf-'+r.id,requireInteraction:true}); } catch(e) {}
+  }
+  // Vibrate on mobile
+  if(navigator.vibrate) navigator.vibrate([200,100,200,100,200]);
+}
+
+function toggleNotifications() {
+  document.getElementById('notifDot').style.display='none';
+  switchSection('reminders');
+}
+
+// ============================
+// MY DAY
+// ============================
+function updateMyDayHeader() {
+  const now = new Date();
+  const days = ['Недела','Понеделник','Вторник','Среда','Четврток','Петок','Сабота'];
+  const months = ['Јануари','Февруари','Март','Април','Мај','Јуни','Јули','Август','Септември','Октомври','Ноември','Декември'];
+  document.getElementById('mydayDate').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('mydayDateBig').textContent = now.getDate();
+}
+
+// ============================
+// TOAST
+// ============================
+function showToast(type, title, msg) {
+  const c = document.getElementById('toastContainer');
+  const icons = {success:'fa-check-circle',warning:'fa-exclamation-triangle',error:'fa-times-circle',info:'fa-info-circle'};
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<div class="toast-icon"><i class="fas ${icons[type]}"></i></div><div class="toast-content"><div class="toast-title">${title}</div>${msg?`<div class="toast-msg">${msg}</div>`:''}</div>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(100px)';setTimeout(()=>t.remove(),300);},4000);
+}
+
+// ============================
+// HELPERS
+// ============================
+function formatDate(ds) {
+  if(!ds) return '';
+  const d = new Date(ds+'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tom = new Date(today); tom.setDate(tom.getDate()+1);
+  const yest = new Date(today); yest.setDate(yest.getDate()-1);
+  if(d.getTime()===today.getTime()) return 'Денес';
+  if(d.getTime()===tom.getTime()) return 'Утре';
+  if(d.getTime()===yest.getTime()) return 'Вчера';
+  const m = ['Јан','Фев','Мар','Апр','Мај','Јун','Јул','Авг','Сеп','Окт','Ное','Дек'];
+  return `${d.getDate()} ${m[d.getMonth()]}`;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape'){closeModal('taskModal');closeModal('reminderModal');closeModal('logoModal');}
+  if(e.ctrlKey&&e.key==='n'){e.preventDefault();openModal('task');}
+  if(e.ctrlKey&&e.key==='r'){e.preventDefault();openModal('reminder');}
+});
+
+// ============================
+// PWA / SERVICE WORKER
+// ============================
+function registerSW() {
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+}
+
+// Install Prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installPrompt').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if(deferredPrompt) {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('installPrompt').classList.remove('show');
+  }
+});
+</script>
+</body>
+</html>
